@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN current_status text DEFAULT NULL;

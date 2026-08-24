@@ -1,0 +1,2 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS selected_category_id UUID REFERENCES public.project_categories(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_tasks_selected_category_id ON public.tasks(selected_category_id);

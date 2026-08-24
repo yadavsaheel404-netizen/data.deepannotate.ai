@@ -1,0 +1,1 @@
+ALTER TABLE public.earnings ADD CONSTRAINT earnings_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id);

@@ -1,0 +1,2 @@
+DROP FUNCTION IF EXISTS public.add_points(uuid,integer,tokens_txn_reason,text,uuid,uuid,jsonb) CASCADE;
+DROP FUNCTION IF EXISTS public.remove_points(uuid,integer,tokens_txn_reason,text,uuid,uuid,jsonb) CASCADE;
