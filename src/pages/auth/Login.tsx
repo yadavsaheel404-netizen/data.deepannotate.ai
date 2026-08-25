@@ -178,10 +178,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between items-center bg-white text-slate-900 overflow-x-hidden font-sans selection:bg-[#0BA8D3]/20">
-      {/* Top Cyan Ambient Aurora Light Bar - Exact Handshake Match */}
-      <div className="absolute top-0 left-0 right-0 h-[140px] overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[120%] h-[160px] rounded-[100%] bg-gradient-to-r from-[#0BA8D3]/35 via-[#06B6D4]/50 to-[#38BDF8]/35 opacity-90 filter blur-[45px] sm:blur-[55px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white" />
+      {/* Top Cyan Ambient Aurora Light Bar - Centered in Middle */}
+      <div className="absolute top-0 left-0 right-0 h-[180px] overflow-hidden pointer-events-none z-0">
+        {/* Centered Glowing Cyan Radial Arch */}
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[550px] sm:w-[680px] h-[220px] rounded-full bg-gradient-to-b from-[#0BA8D3]/45 via-[#06B6D4]/35 to-transparent opacity-90 filter blur-[50px] sm:blur-[65px] animate-aurora-1" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-white animate-aurora-2" />
       </div>
 
       {/* Centered Content Column starting ~15% from top */}

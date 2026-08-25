@@ -263,3 +263,35 @@
     background-clip: text;
   }
 }
+
+/* Ambient Aurora Drifting & Breathing Motion */
+@keyframes aurora-pulse-1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.90;
+  }
+  50% {
+    transform: translate3d(-3%, 4px, 0) scale(1.05);
+    opacity: 0.65;
+  }
+}
+
+@keyframes aurora-pulse-2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.70;
+  }
+  50% {
+    transform: translate3d(4%, -5px, 0) scale(1.06);
+    opacity: 0.95;
+  }
+}
+
+.animate-aurora-1 {
+  animation: aurora-pulse-1 11s ease-in-out infinite;
+}
+
+.animate-aurora-2 {
+  animation: aurora-pulse-2 15s ease-in-out infinite;
+}
+
