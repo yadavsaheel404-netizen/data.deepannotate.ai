@@ -178,16 +178,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between items-center bg-white text-slate-900 overflow-x-hidden font-sans selection:bg-[#0BA8D3]/20">
-      {/* Saturated High-Intensity Aurora Top Light Bar across top ~280-320px */}
-      <div className="absolute top-0 left-0 right-0 h-[300px] overflow-hidden pointer-events-none z-0">
-        {/* Cyan (#0BA8D3) High Saturation Glow (Top-Left) */}
-        <div className="absolute -top-20 -left-12 w-[55%] h-[300px] rounded-full bg-[#0BA8D3] opacity-55 filter blur-[110px]" />
-        {/* Dark Navy (#0E1F3E) Deep Rich Glow (Top-Right) */}
-        <div className="absolute -top-24 -right-12 w-[60%] h-[320px] rounded-full bg-[#0E1F3E] opacity-50 filter blur-[120px]" />
-        {/* Cyan Accent Core for rich Handshake-style ambient glow */}
-        <div className="absolute -top-32 left-[20%] w-[50%] h-[260px] rounded-full bg-[#06B6D4] opacity-45 filter blur-[100px]" />
-        {/* Smooth fade-to-white mask down at ~280-300px */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-white" />
+      {/* Top Cyan Ambient Aurora Light Bar - Exact Handshake Match */}
+      <div className="absolute top-0 left-0 right-0 h-[140px] overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[120%] h-[160px] rounded-[100%] bg-gradient-to-r from-[#0BA8D3]/35 via-[#06B6D4]/50 to-[#38BDF8]/35 opacity-90 filter blur-[45px] sm:blur-[55px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-white" />
       </div>
 
       {/* Centered Content Column starting ~15% from top */}
