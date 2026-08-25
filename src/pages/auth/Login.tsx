@@ -6,16 +6,13 @@ import { firebaseAuth } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AlertCircle, ArrowRight, Mail, Lock, ShieldCheck, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
-import { AuthHeroPanel } from '@/components/auth/AuthHeroPanel';
-import { DeepAnnotateLogo } from '@/components/auth/DeepAnnotateLogo';
+import logoImg from '@/assets/logo.png';
+import { Globe, ChevronDown, AlertCircle } from 'lucide-react';
 
 function getAuthErrorMessage(code: string, rawMsg: string): { title: string; description: string } {
   const normalizedCode = (code || '').toLowerCase();
-  const normalizedMsg = (rawMsg || '').toLowerCase();
 
   if (normalizedCode === 'auth/user-not-found' || normalizedCode.includes('user-not-found')) {
     return {
@@ -104,7 +101,7 @@ export default function Login() {
     setFormError(null);
     try {
       const fbUser = await signInWithEmail(email, password);
-      
+
       const isGoogleUser = fbUser?.providerData?.some((p) => p.providerId === 'google.com');
       if (!isGoogleUser && !fbUser.emailVerified) {
         await signOutFirebase(firebaseAuth);
@@ -122,7 +119,7 @@ export default function Login() {
         });
         return;
       }
-      
+
       navigate('/', { replace: true });
     } catch (error: any) {
       const errDetails = getAuthErrorMessage(error?.code || '', error?.message || '');
@@ -180,223 +177,212 @@ export default function Login() {
   };
 
   return (
-    <div className="flex h-screen max-h-screen overflow-hidden bg-[#F8FAFC]">
-      {/* Left panel - Hero branding matching Image 1 & 3 */}
-      <AuthHeroPanel />
+    <div className="min-h-screen w-full relative flex flex-col justify-between items-center bg-white text-slate-900 overflow-x-hidden font-sans selection:bg-[#0BA8D3]/20">
+      {/* Top Aurora Ambient Light Bar across top ~250-300px */}
+      <div className="absolute top-0 left-0 right-0 h-[280px] overflow-hidden pointer-events-none z-0">
+        {/* Asymmetrical Cyan (#0BA8D3) Light Bleed (Top-Left) */}
+        <div className="absolute -top-24 -left-16 w-[420px] h-[280px] rounded-full bg-[#0BA8D3]/30 filter blur-[90px] opacity-90" />
+        {/* Asymmetrical Dark Navy (#0E1F3E) Light Bleed (Top-Right) */}
+        <div className="absolute -top-28 right-0 w-[460px] h-[320px] rounded-full bg-[#0E1F3E]/25 filter blur-[110px] opacity-80" />
+        {/* Gradient blend to white */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white" />
+      </div>
 
-      {/* Right panel - Single viewport Card & Footer Badges */}
-      <div className="flex flex-1 flex-col items-center justify-between p-4 sm:p-6 lg:py-6 lg:px-8 h-screen max-h-screen overflow-hidden">
-        {/* Top Spacer */}
-        <div className="shrink-0 h-1" />
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-          className="w-full max-w-md my-auto"
+      {/* Language / Locale Selector pinned top-right */}
+      <div className="absolute top-5 right-6 sm:top-7 sm:right-10 z-20">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#0E1F3E] transition-colors cursor-pointer bg-transparent border-0 py-1 px-2 focus:outline-none"
         >
-          {/* Card Container */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_12px_40px_rgba(11,30,72,0.05)] border border-slate-100/90">
-            {/* Mobile Header Logo */}
-            <div className="mb-4 lg:hidden">
-              <DeepAnnotateLogo />
-            </div>
+          <Globe className="h-3.5 w-3.5 text-slate-400" />
+          <span>English (US)</span>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        </button>
+      </div>
 
-            <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0B1E48] tracking-tight">
-              Welcome back
-            </h2>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">Sign in to your account</p>
+      {/* Centered Content Column starting ~15% from top */}
+      <div className="relative z-10 w-full max-w-[400px] px-5 pt-14 sm:pt-20 pb-8 my-auto flex flex-col items-center">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="w-full flex flex-col items-center"
+        >
+          {/* 1. Logo: ~70x70px, border-radius ~16px, background dark navy #0E1F3E */}
+          <div className="h-[72px] w-[72px] rounded-[16px] bg-[#0E1F3E] p-2.5 flex items-center justify-center shadow-lg shadow-[#0E1F3E]/10 mb-6 shrink-0">
+            <img src={logoImg} alt="DeepAnnotate Logo" className="h-full w-full object-contain" />
+          </div>
 
-            {banner && (
-              <div
-                role="status"
-                className="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-[#0B1E48]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <span>{banner}</span>
-                  <button
-                    type="button"
-                    onClick={() => setBanner(null)}
-                    className="text-slate-400 hover:text-slate-700 font-bold"
-                    aria-label="Dismiss"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )}
+          {/* 2. Heading */}
+          <h1 className="font-display text-3xl sm:text-[34px] font-extrabold text-[#0E1F3E] tracking-tight text-center mb-6">
+            Welcome back
+          </h1>
 
-            {formError && (
-              <div
-                role="alert"
-                className="mt-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900 space-y-1"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="font-semibold text-rose-700 flex items-center gap-1.5">
-                    <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                    {formError.title}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setFormError(null)}
-                    className="text-rose-400 hover:text-rose-700 text-xs font-bold"
-                    aria-label="Dismiss error"
-                  >
-                    ×
-                  </button>
-                </div>
-                <p className="text-rose-600/90 leading-relaxed text-[11px]">
-                  {formError.description}
-                </p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="mt-5 space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="email" className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-500" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="pl-9 h-10 text-xs border-slate-200 focus:border-[#0284C7] focus:ring-[#0284C7]/20 rounded-xl bg-slate-50/50 text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                    Password
-                  </Label>
-                  <Link to="/auth/forgot-password" className="text-xs text-[#0284C7] font-semibold hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sky-500" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pl-9 h-10 text-xs border-slate-200 focus:border-[#0284C7] focus:ring-[#0284C7]/20 rounded-xl bg-slate-50/50 text-slate-900 placeholder:text-slate-400"
-                  />
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-11 bg-[#0B1E48] hover:bg-[#061434] text-white font-bold rounded-xl shadow-md shadow-[#0B1E48]/10 transition-all flex items-center justify-center gap-2 text-xs mt-5 cursor-pointer"
-              >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Button>
-
-              {needsVerification && (
-                <div
-                  role="alert"
-                  className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs mt-2"
-                >
-                  <p className="font-semibold text-amber-900">Please verify your email before logging in.</p>
-                  <p className="mt-0.5 text-[11px] text-amber-700">
-                    Check your inbox for the link.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 text-[11px] h-7 border-amber-300 bg-white hover:bg-amber-100/50"
-                    onClick={handleResendVerification}
-                    disabled={resending}
-                  >
-                    {resending ? 'Sending...' : 'Resend email'}
-                  </Button>
-                </div>
-              )}
-            </form>
-
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200/80" />
-              </div>
-              <div className="relative flex justify-center text-[11px]">
-                <span className="bg-white px-2.5 text-slate-400 font-medium">or continue with</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-10 bg-white hover:bg-slate-50 border-slate-200 text-slate-700 font-semibold rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2.5 text-xs cursor-pointer"
-              onClick={handleGoogleSignIn}
+          {/* Banner Notifications */}
+          {banner && (
+            <div
+              role="status"
+              className="w-full mb-4 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2.5 text-xs text-[#0E1F3E]"
             >
-              <svg className="h-4 w-4" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continue with Google
+              <div className="flex items-start justify-between gap-2">
+                <span>{banner}</span>
+                <button
+                  type="button"
+                  onClick={() => setBanner(null)}
+                  className="text-slate-400 hover:text-slate-700 font-bold"
+                  aria-label="Dismiss"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Form Error Banner */}
+          {formError && (
+            <div
+              role="alert"
+              className="w-full mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900 space-y-1"
+            >
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-rose-700 flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  {formError.title}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setFormError(null)}
+                  className="text-rose-400 hover:text-rose-700 text-xs font-bold"
+                  aria-label="Dismiss error"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-rose-600/90 leading-relaxed text-[11px]">
+                {formError.description}
+              </p>
+            </div>
+          )}
+
+          {/* 3 & 4. Inputs & Form */}
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
+            {/* Email Input */}
+            <div className="space-y-1">
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full h-12 px-4 bg-[#f2f2f2] border-0 focus-visible:ring-2 focus-visible:ring-[#0BA8D3] focus-visible:bg-white rounded-[10px] text-sm text-slate-900 placeholder:text-slate-400 transition-all shadow-none"
+              />
+            </div>
+
+            {/* Password Input with Forgot password link */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between px-0.5 mb-1">
+                <span className="text-xs text-slate-500 font-medium">Password</span>
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-xs font-semibold text-[#0BA8D3] hover:text-[#0883A6] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full h-12 px-4 bg-[#f2f2f2] border-0 focus-visible:ring-2 focus-visible:ring-[#0BA8D3] focus-visible:bg-white rounded-[10px] text-sm text-slate-900 placeholder:text-slate-400 transition-all shadow-none"
+              />
+            </div>
+
+            {/* 5. Sign In Button */}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-12 bg-[#0E1F3E] hover:bg-[#081327] text-white font-bold rounded-[10px] shadow-sm transition-all text-sm mt-2 cursor-pointer border-0"
+            >
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              Don't have an account?{' '}
-              <Link to="/auth/signup" className="font-semibold text-[#0284C7] hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </motion.div>
+            {needsVerification && (
+              <div
+                role="alert"
+                className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs mt-3"
+              >
+                <p className="font-semibold text-amber-900">Please verify your email before logging in.</p>
+                <p className="mt-0.5 text-[11px] text-amber-700">
+                  Check your inbox for the link.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-2 text-[11px] h-7 border-amber-300 bg-white hover:bg-amber-100/50"
+                  onClick={handleResendVerification}
+                  disabled={resending}
+                >
+                  {resending ? 'Sending...' : 'Resend email'}
+                </Button>
+              </div>
+            )}
+          </form>
 
-        {/* Bottom Feature Badges & Copyright Footer (Matching Image 3) */}
-        <div className="w-full max-w-md shrink-0 border-t border-slate-200/80 pt-3 pb-1 space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-sky-100/70 text-[#0284C7] flex items-center justify-center shrink-0">
-                <ShieldCheck className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-[11px] text-[#0B1E48] leading-tight">Global Community</h4>
-                <p className="text-[10px] text-slate-500 leading-tight">190+ countries</p>
-              </div>
+          {/* 6. Divider */}
+          <div className="relative w-full my-5">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-200" />
             </div>
-
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-sky-100/70 text-[#0284C7] flex items-center justify-center shrink-0">
-                <Lock className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-[11px] text-[#0B1E48] leading-tight">Fair & Transparent</h4>
-                <p className="text-[10px] text-slate-500 leading-tight">Real rewards</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-md bg-sky-100/70 text-[#0284C7] flex items-center justify-center shrink-0">
-                <Users className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h4 className="font-bold text-[11px] text-[#0B1E48] leading-tight">Built for Annotators</h4>
-                <p className="text-[10px] text-slate-500 leading-tight">By annotators</p>
-              </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-3 text-slate-400 font-medium">or continue with</span>
             </div>
           </div>
 
-          <p className="text-center text-[10px] text-slate-400">
-            © 2026 data.deepannotate.ai. All rights reserved.
+          {/* 7. Continue with Google Button */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleSignIn}
+            className="w-full h-12 bg-white hover:bg-slate-50/80 border border-slate-200 text-slate-700 font-semibold rounded-[10px] shadow-xs hover:shadow-sm transition-all flex items-center justify-center gap-3 text-sm cursor-pointer"
+          >
+            <svg className="h-4.5 w-4.5 shrink-0" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </Button>
+
+          {/* 8. Sign Up Link */}
+          <p className="mt-5 text-center text-xs text-slate-500 font-medium">
+            Don't have an account?{' '}
+            <Link to="/auth/signup" className="font-semibold text-[#0BA8D3] hover:underline">
+              Sign up
+            </Link>
           </p>
-        </div>
+        </motion.div>
       </div>
+
+      {/* 9. Small gray centered legal text at very bottom of page */}
+      <footer className="relative z-10 w-full text-center py-6 px-4 shrink-0">
+        <p className="text-[11px] text-slate-400 leading-normal max-w-sm mx-auto">
+          By continuing, you agree to our{' '}
+          <a href="#" className="text-[#0BA8D3] hover:underline">
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a href="#" className="text-[#0BA8D3] hover:underline">
+            Privacy Policy
+          </a>
+          .
+        </p>
+      </footer>
     </div>
   );
 }
