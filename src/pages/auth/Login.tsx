@@ -178,26 +178,16 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full relative flex flex-col justify-between items-center bg-white text-slate-900 overflow-x-hidden font-sans selection:bg-[#0BA8D3]/20">
-      {/* Top Aurora Ambient Light Bar across top ~250-300px */}
-      <div className="absolute top-0 left-0 right-0 h-[280px] overflow-hidden pointer-events-none z-0">
-        {/* Asymmetrical Cyan (#0BA8D3) Light Bleed (Top-Left) */}
-        <div className="absolute -top-24 -left-16 w-[420px] h-[280px] rounded-full bg-[#0BA8D3]/30 filter blur-[90px] opacity-90" />
-        {/* Asymmetrical Dark Navy (#0E1F3E) Light Bleed (Top-Right) */}
-        <div className="absolute -top-28 right-0 w-[460px] h-[320px] rounded-full bg-[#0E1F3E]/25 filter blur-[110px] opacity-80" />
-        {/* Gradient blend to white */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white" />
-      </div>
-
-      {/* Language / Locale Selector pinned top-right */}
-      <div className="absolute top-5 right-6 sm:top-7 sm:right-10 z-20">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[#0E1F3E] transition-colors cursor-pointer bg-transparent border-0 py-1 px-2 focus:outline-none"
-        >
-          <Globe className="h-3.5 w-3.5 text-slate-400" />
-          <span>English (US)</span>
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-        </button>
+      {/* Saturated High-Intensity Aurora Top Light Bar across top ~280-320px */}
+      <div className="absolute top-0 left-0 right-0 h-[300px] overflow-hidden pointer-events-none z-0">
+        {/* Cyan (#0BA8D3) High Saturation Glow (Top-Left) */}
+        <div className="absolute -top-20 -left-12 w-[55%] h-[300px] rounded-full bg-[#0BA8D3] opacity-55 filter blur-[110px]" />
+        {/* Dark Navy (#0E1F3E) Deep Rich Glow (Top-Right) */}
+        <div className="absolute -top-24 -right-12 w-[60%] h-[320px] rounded-full bg-[#0E1F3E] opacity-50 filter blur-[120px]" />
+        {/* Cyan Accent Core for rich Handshake-style ambient glow */}
+        <div className="absolute -top-32 left-[20%] w-[50%] h-[260px] rounded-full bg-[#06B6D4] opacity-45 filter blur-[100px]" />
+        {/* Smooth fade-to-white mask down at ~280-300px */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/20 to-white" />
       </div>
 
       {/* Centered Content Column starting ~15% from top */}
@@ -208,14 +198,14 @@ export default function Login() {
           transition={{ duration: 0.35, ease: 'easeOut' }}
           className="w-full flex flex-col items-center"
         >
-          {/* 1. Logo: ~70x70px, border-radius ~16px, background dark navy #0E1F3E */}
-          <div className="h-[72px] w-[72px] rounded-[16px] bg-[#0E1F3E] p-2.5 flex items-center justify-center shadow-lg shadow-[#0E1F3E]/10 mb-6 shrink-0">
+          {/* 1. Logo: Clean raw logo image without dark card container */}
+          <div className="h-[76px] w-[76px] flex items-center justify-center mb-6 shrink-0">
             <img src={logoImg} alt="DeepAnnotate Logo" className="h-full w-full object-contain" />
           </div>
 
-          {/* 2. Heading */}
+          {/* 2. Heading: Neutral for both login and signup */}
           <h1 className="font-display text-3xl sm:text-[34px] font-extrabold text-[#0E1F3E] tracking-tight text-center mb-6">
-            Welcome back
+            Log in or sign up
           </h1>
 
           {/* Banner Notifications */}

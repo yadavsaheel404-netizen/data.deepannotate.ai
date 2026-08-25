@@ -1,14 +1,12 @@
 import logoImg from '@/assets/logo.png';
 
-export function DeepAnnotateLogoIcon({ className = 'h-16 w-16' }: { className?: string }) {
+export function DeepAnnotateLogoIcon({ className = 'h-10 w-10' }: { className?: string }) {
   return (
-    <div className={`relative overflow-hidden rounded-[16px] bg-[#0E1F3E] flex items-center justify-center p-2 shadow-md ${className}`}>
-      <img
-        src={logoImg}
-        alt="data.deepannotate.ai logo"
-        className="h-full w-full object-contain"
-      />
-    </div>
+    <img
+      src={logoImg}
+      alt="data.deepannotate.ai logo"
+      className={`object-contain ${className}`}
+    />
   );
 }
 
