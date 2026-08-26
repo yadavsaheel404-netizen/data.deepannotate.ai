@@ -70,6 +70,8 @@ export default function SubmitTask() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
+  const profile = useAuthStore((s) => s.profile);
+  const userId = profile?.id || user?.uid;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const navState = (location.state ?? {}) as {
@@ -116,12 +118,12 @@ export default function SubmitTask() {
     };
   }, [selectedFile]);
 
-  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const initialized = useAuthStore((s) => s.initialized);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!taskId || !isInitialized) return;
-    if (!user?.id) {
+    if (!taskId || !initialized) return;
+    if (!userId) {
       setLoading(false);
       return;
     }
@@ -132,7 +134,7 @@ export default function SubmitTask() {
       try {
         const [taskRes, count] = await Promise.all([
           supabase.from('projects').select('*').eq('id', taskId).single(),
-          fetchUserSubmissionCount(user.id, taskId),
+          fetchUserSubmissionCount(userId, taskId),
         ]);
         if (!isSubscribed) return;
         if (taskRes.error || !taskRes.data) {
@@ -158,9 +160,9 @@ export default function SubmitTask() {
     return () => {
       isSubscribed = false;
     };
-  }, [taskId, navigate, user?.id, isInitialized]);
+  }, [taskId, navigate, userId, initialized]);
 
-  if (!isInitialized || loading) {
+  if (!initialized || loading) {
     return (
       <div className="space-y-4 p-4 max-w-2xl mx-auto">
         <Skeleton className="h-8 w-3/4" />
@@ -169,7 +171,7 @@ export default function SubmitTask() {
     );
   }
 
-  if (!user?.id) {
+  if (!userId) {
     return (
       <div className="p-6 max-w-lg mx-auto text-center space-y-4 mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
         <AlertCircle className="h-12 w-12 text-amber-500 mx-auto" />
@@ -271,7 +273,7 @@ export default function SubmitTask() {
       return;
     }
     // Frontend re-check against server count to enforce limit strictly
-    const freshCount = await fetchUserSubmissionCount(user.id, task.id).catch(() => myCount);
+    const freshCount = await fetchUserSubmissionCount(userId, task.id).catch(() => myCount);
     setMyCount(freshCount);
     if (freshCount >= task.total_tasks) {
       setUploadError(`Submission limit reached (${freshCount}/${task.total_tasks}). This task is now closed.`);
@@ -309,7 +311,7 @@ export default function SubmitTask() {
         const { data: existing, error: dupErr } = await supabase
           .from('tasks')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('project_id', task.id)
           .eq('file_hash', fileHash)
           .limit(1);
@@ -361,7 +363,7 @@ export default function SubmitTask() {
       }
       await createSubmission({
         project_id: task.id,
-        user_id: user.id,
+        user_id: userId,
         file_url: fileUrl,
         file_hash: fileHash,
         text_content: isText ? textContent.trim() : null,

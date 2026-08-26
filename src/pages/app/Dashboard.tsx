@@ -39,6 +39,7 @@ export default function ContributorDashboard() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
+  const userId = profile?.id || user?.uid;
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -49,14 +50,14 @@ export default function ContributorDashboard() {
   const showBanner = profile && !profile.profile_completed && !bannerDismissed;
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
     (async () => {
       setLoading(true);
       try {
         const { data: submissions } = await supabase
           .from('tasks')
           .select('id, status, project_id')
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
 
         const subs = (submissions ?? []) as any[];
         const approvedProjectIds = [...new Set(subs.filter((s) => s.status === 'approved').map((s) => s.project_id))];
@@ -82,16 +83,16 @@ export default function ContributorDashboard() {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, [userId]);
 
   const fetchSubmissions = async (status: string) => {
-    if (!user) return;
+    if (!userId) return;
     setPanelLoading(true);
     try {
       const { data } = await supabase
         .from('tasks')
         .select('id, status, created_at, project_id, projects(title, media_type)')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('status', status as any)
         .order('created_at', { ascending: false });
 
@@ -112,13 +113,13 @@ export default function ContributorDashboard() {
   };
 
   const fetchEarnings = async () => {
-    if (!user) return;
+    if (!userId) return;
     setPanelLoading(true);
     try {
       const { data } = await supabase
         .from('earnings')
         .select('id, amount, status, created_at, project_id, projects(title)')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       setPanelData(

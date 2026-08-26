@@ -116,12 +116,13 @@ function computeProfileCompletion(profile: any): { filled: number; total: number
 
 export default function Profile() {
   const { profile, user, fetchProfile } = useAuthStore();
-  const { data: stats, isFetching: statsLoading } = useProfileStats(user?.id);
+  const userId = profile?.id || user?.uid;
+  const { data: stats, isFetching: statsLoading } = useProfileStats(userId);
 
   useEffect(() => {
-    if (user?.id) fetchProfile(user.id);
+    if (userId) fetchProfile(userId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [userId]);
 
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
@@ -169,21 +170,21 @@ export default function Profile() {
   }, [profile]);
 
   const handleAvatarUpload = async (file: File) => {
-    if (!user) return;
+    if (!userId) return;
     if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be under 5MB'); return; }
     setAvatarUploading(true);
     try {
       const ext = (file.name.split('.').pop() || 'png').toLowerCase();
-      const path = `${user.id}/avatar.${ext}`;
+      const path = `${userId}/avatar.${ext}`;
       const { error: upErr } = await supabase.storage
         .from('avatars').upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
       const avatar_url = `${urlData.publicUrl}?v=${Date.now()}`;
-      const { error } = await supabase.from('profiles').update({ avatar_url }).eq('id', user.id);
+      const { error } = await supabase.from('profiles').update({ avatar_url }).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Profile photo updated');
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload photo');
@@ -193,12 +194,12 @@ export default function Profile() {
   };
 
   const handleAvatarRemove = async () => {
-    if (!user) return;
+    if (!userId) return;
     setAvatarUploading(true);
     try {
-      const { error } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', user.id);
+      const { error } = await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Profile photo removed');
     } catch (err: any) {
       toast.error(err.message || 'Failed to remove photo');
@@ -213,7 +214,7 @@ export default function Profile() {
     setSkills((prev) => prev.includes(val) ? prev.filter((s) => s !== val) : [...prev, val]);
 
   const handleSavePersonal = async () => {
-    if (!user) return;
+    if (!userId) return;
     const trimmedName = displayName.trim();
     if (!trimmedName) {
       setDisplayNameError('Display Name is required');
@@ -238,9 +239,9 @@ export default function Profile() {
         phone,
         current_status: currentStatus || null,
         working_profession: needsProfession ? workingProfession.trim() : null,
-      } as any).eq('id', user.id);
+      } as any).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Personal info updated');
     } catch (err: any) {
       const msg = err.message || 'Failed to update profile';
@@ -252,7 +253,7 @@ export default function Profile() {
   };
 
   const handleSaveSkills = async () => {
-    if (!user) return;
+    if (!userId) return;
     if (languages.length === 0) { toast.error('Select at least one language'); return; }
     setSaving(true);
     try {
@@ -262,9 +263,9 @@ export default function Profile() {
         hours_per_week: hoursPerWeek || null,
         linkedin_url: linkedinUrl.trim() || null,
         github_url: githubUrl.trim() || null,
-      }).eq('id', user.id);
+      }).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Skills & preferences updated');
     } catch (err: any) {
       toast.error(err.message || 'Failed to update');
@@ -274,7 +275,7 @@ export default function Profile() {
   };
 
   const handleSavePayment = async () => {
-    if (!user) return;
+    if (!userId) return;
     setSavingPayment(true);
     try {
       let updates: Record<string, any> = { payout_country: payoutCountry };
@@ -310,9 +311,9 @@ export default function Profile() {
         updates = { ...updates, paypal_email: email };
       }
 
-      const { error } = await supabase.from('profiles').update(updates as any).eq('id', user.id);
+      const { error } = await supabase.from('profiles').update(updates as any).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Payment details updated');
     } catch (err: any) {
       toast.error(err.message || 'Failed to update payment details');

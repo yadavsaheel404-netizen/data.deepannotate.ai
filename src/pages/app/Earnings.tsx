@@ -20,17 +20,18 @@ interface Earning {
 export default function Earnings() {
   const user = useAuthStore((s) => s.user);
   const profile = useAuthStore((s) => s.profile);
+  const userId = profile?.id || user?.uid;
   const [earnings, setEarnings] = useState<Earning[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
     (async () => {
       setLoading(true);
       const { data } = await supabase
         .from('earnings')
         .select('*, projects(title)')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       setEarnings(
@@ -43,7 +44,7 @@ export default function Earnings() {
       );
       setLoading(false);
     })();
-  }, [user]);
+  }, [userId]);
 
   const walletBalance = Number(profile?.wallet_balance ?? 0);
   const totalEarned = Number(profile?.total_earned ?? 0);

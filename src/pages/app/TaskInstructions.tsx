@@ -11,7 +11,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { Layers, Check, ChevronsUpDown } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, CheckCircle2, XCircle, FileText, Play, Calendar, Wallet, Sparkles } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, CheckCircle2, XCircle, FileText, Play, Calendar, Wallet, Sparkles, ZoomIn, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { formatMoney } from '@/lib/formatMoney';
@@ -413,6 +414,12 @@ export default function TaskInstructions() {
 }
 
 function ExampleGroup({ kind, items }: { kind: 'good' | 'bad'; items: NonNullable<Task['example_media']> }) {
+  const [previewItem, setPreviewItem] = useState<{
+    url: string;
+    title?: string;
+    note?: string;
+  } | null>(null);
+
   const isGood = kind === 'good';
   const Icon = isGood ? CheckCircle2 : XCircle;
   const headerCls = isGood
@@ -430,10 +437,29 @@ function ExampleGroup({ kind, items }: { kind: 'good' | 'bad'; items: NonNullabl
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {items.map((ex) => (
-          <div key={ex.id} className={`rounded-lg border-2 ${cardBorder} bg-card overflow-hidden`}>
-            <div className="relative w-full aspect-video bg-muted">
+          <div key={ex.id} className={`rounded-lg border-2 ${cardBorder} bg-card overflow-hidden flex flex-col`}>
+            <div
+              className={`relative w-full aspect-video bg-muted group ${
+                ex.media_type === 'image' && ex.source === 'upload' ? 'cursor-pointer overflow-hidden' : ''
+              }`}
+              onClick={() => {
+                if (ex.media_type === 'image' && ex.source === 'upload') {
+                  setPreviewItem({ url: ex.url, title: ex.title, note: ex.note });
+                }
+              }}
+            >
               {ex.media_type === 'image' && ex.source === 'upload' && (
-                <img src={ex.url} alt={ex.title || label} className="w-full h-full object-cover" />
+                <>
+                  <img
+                    src={ex.url}
+                    alt={ex.title || label}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white font-medium text-xs">
+                    <ZoomIn className="h-5 w-5" />
+                    <span>Click to view full image</span>
+                  </div>
+                </>
               )}
               {ex.media_type === 'video' && ex.source === 'upload' && (
                 <video src={ex.url} className="w-full h-full object-contain bg-black" controls preload="metadata" />
@@ -459,25 +485,106 @@ function ExampleGroup({ kind, items }: { kind: 'good' | 'bad'; items: NonNullabl
                   </span>
                 </a>
               )}
-              <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeCls}`}>
+              <span className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm ${badgeCls}`}>
                 <Icon className="h-3 w-3" />
                 {label.toUpperCase()}
               </span>
             </div>
-            <div className="p-3 space-y-1">
-              {ex.title && (
-                <p className="text-sm font-semibold text-foreground line-clamp-2">{ex.title}</p>
-              )}
-              {ex.note && (
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  <span className="font-medium text-foreground/80">Reason: </span>
-                  {ex.note}
-                </p>
+            <div className="p-3 space-y-1 flex-1 flex flex-col justify-between">
+              <div>
+                {ex.title && (
+                  <p className="text-sm font-semibold text-foreground line-clamp-2">{ex.title}</p>
+                )}
+                {ex.note && (
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-1">
+                    <span className="font-medium text-foreground/80">Reason: </span>
+                    {ex.note}
+                  </p>
+                )}
+              </div>
+              {ex.media_type === 'image' && ex.source === 'upload' && (
+                <div className="pt-2 flex items-center gap-3 text-xs text-primary font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewItem({ url: ex.url, title: ex.title, note: ex.note })}
+                    className="hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <ZoomIn className="h-3.5 w-3.5" /> View Photo
+                  </button>
+                  <a
+                    href={ex.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" /> Open Link
+                  </a>
+                </div>
               )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Image Lightbox Modal */}
+      <Dialog open={!!previewItem} onOpenChange={(open) => !open && setPreviewItem(null)}>
+        <DialogContent className="max-w-4xl w-[95vw] p-4 sm:p-6 bg-card text-card-foreground rounded-2xl">
+          {previewItem && (
+            <div className="space-y-4">
+              <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-md ${badgeCls}`}>
+                    <Icon className="h-3.5 w-3.5" />
+                    {label.toUpperCase()}
+                  </span>
+                  <DialogTitle className="text-base font-bold truncate max-w-xs sm:max-w-md">
+                    {previewItem.title || label}
+                  </DialogTitle>
+                </div>
+              </DialogHeader>
+
+              {/* High Res Full Image View */}
+              <div className="relative w-full max-h-[65vh] bg-black/5 dark:bg-black/40 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-border">
+                <img
+                  src={previewItem.url}
+                  alt={previewItem.title || label}
+                  className="max-h-[60vh] w-auto max-w-full object-contain rounded-lg shadow-md"
+                />
+              </div>
+
+              {previewItem.note && (
+                <div className="p-3 bg-muted/50 rounded-xl border border-border/60">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    <span className="font-semibold text-foreground">Reason: </span>
+                    {previewItem.note}
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons: Open Image in New Tab & Download */}
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-border">
+                <a
+                  href={previewItem.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl border border-border bg-background hover:bg-muted transition text-foreground"
+                >
+                  <ExternalLink className="h-4 w-4 text-primary" />
+                  Open Full Image in New Tab
+                </a>
+                <a
+                  href={previewItem.url}
+                  download="example-photo"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-primary text-primary-foreground hover:opacity-90 transition shadow-xs"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Image
+                </a>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

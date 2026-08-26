@@ -82,23 +82,23 @@ export default function WalletPage() {
   const totalTokens = ledgerTokens ?? Number(profile?.total_tokens ?? 0);
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!userId) {
       setLedgerTokens(null);
       return;
     }
-    getTokensBalance(user.id).then(setLedgerTokens).catch(() => setLedgerTokens(Number(profile?.total_tokens ?? 0)));
-  }, [user?.id, tokensRefreshKey, profile?.total_tokens]);
+    getTokensBalance(userId).then(setLedgerTokens).catch(() => setLedgerTokens(Number(profile?.total_tokens ?? 0)));
+  }, [userId, tokensRefreshKey, profile?.total_tokens]);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!userId) return;
     const channel = supabase
-      .channel(`wallet_tokens_${user.id}`)
+      .channel(`wallet_tokens_${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'tokens_transactions', filter: `user_id=eq.${user.id}` },
+        { event: 'INSERT', schema: 'public', table: 'tokens_transactions', filter: `user_id=eq.${userId}` },
         () => {
-          getTokensBalance(user.id).then(setLedgerTokens).catch(() => {});
-          fetchProfile(user.id);
+          getTokensBalance(userId).then(setLedgerTokens).catch(() => {});
+          fetchProfile(userId);
           refreshTokens();
         },
       )
@@ -106,7 +106,7 @@ export default function WalletPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, fetchProfile]);
+  }, [userId, fetchProfile]);
 
   // Surface earn/spend toasts when total_tokens changes between renders.
   // Skips the very first render so we don't toast on initial load.
@@ -143,19 +143,19 @@ export default function WalletPage() {
   const availableBalance = Math.max(0, walletBalance - lockedAmount);
 
   const fetchData = async () => {
-    if (!user?.id) return;
+    if (!userId) return;
     setLoading(true);
     try {
       const [earningsRes, withdrawRes] = await Promise.all([
         supabase
           .from('earnings')
           .select('*, projects(title)')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false }),
         supabase
           .from('withdraw_requests')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false }),
       ]);
 
@@ -256,7 +256,7 @@ export default function WalletPage() {
 
       // Snapshot current payment details at request time so future profile edits cannot change historical withdrawals.
       const insertPayload: any = {
-        user_id: user.id,
+        user_id: userId,
         amount,
         status: 'pending',
         payment_method: isPaypalUser ? 'paypal' : 'india',
@@ -280,7 +280,7 @@ export default function WalletPage() {
       setModalOpen(false);
       setWithdrawAmount('');
       fetchData();
-      if (user) fetchProfile(user.id);
+      if (userId) fetchProfile(userId);
     } catch (err: any) {
       toast.error(err.message || 'Failed to submit request');
     } finally {
@@ -337,7 +337,7 @@ export default function WalletPage() {
         open={tipOpen}
         onOpenChange={setTipOpen}
         currentTokens={totalTokens}
-        onSuccess={() => { if (user) fetchProfile(user.id); refreshTokens(); }}
+        onSuccess={() => { if (userId) fetchProfile(userId); refreshTokens(); }}
       />
 
       {!kycVerified && (
@@ -494,9 +494,9 @@ export default function WalletPage() {
         </TabsList>
 
         <TabsContent value="points">
-          {user && (
+          {userId && (
             <TokensDashboard
-              userId={user.id}
+              userId={userId}
               totalTokens={totalTokens}
               refreshKey={tokensRefreshKey}
             />
