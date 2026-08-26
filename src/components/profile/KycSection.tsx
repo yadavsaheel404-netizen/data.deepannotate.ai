@@ -72,6 +72,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function KycSection() {
   const { profile, user, fetchProfile } = useAuthStore();
+  const userId = profile?.id || user?.uid;
   const p: any = profile || {};
   const isIndia = !p.payout_country || String(p.payout_country).toLowerCase() === 'in' || String(p.payout_country).toLowerCase() === 'india';
   const ID_TYPES = isIndia ? INDIA_ID_TYPES : INTL_ID_TYPES;
@@ -92,7 +93,7 @@ export default function KycSection() {
   const kycPct = Math.round((filledCount / totalSteps) * 100);
 
   const handleFileUpload = async (file: File) => {
-    if (!user) return;
+    if (!userId) return;
     if (!ACCEPTED.includes(file.type)) {
       toast.error('Only JPG, PNG, or PDF files allowed');
       return;
@@ -109,7 +110,7 @@ export default function KycSection() {
     setUploading(true);
     try {
       const ext = (file.name.split('.').pop() || 'pdf').toLowerCase();
-      const path = `${user.id}/govt_id_${Date.now()}.${ext}`;
+      const path = `${userId}/govt_id_${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from('kyc-documents')
         .upload(path, file, { upsert: false, contentType: file.type });
@@ -118,10 +119,10 @@ export default function KycSection() {
       const { error } = await supabase.from('profiles').update({
         govt_id_url: path,
         govt_id_type: govtIdType,
-      } as any).eq('id', user.id);
+      } as any).eq('id', userId);
       if (error) throw error;
 
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('Document uploaded — pending admin review');
     } catch (err: any) {
       toast.error(err.message || 'Failed to upload document');
@@ -131,7 +132,7 @@ export default function KycSection() {
   };
 
   const handleSaveDetails = async () => {
-    if (!user) return;
+    if (!userId) return;
     if (!gender) { toast.error('Gender is required'); return; }
     if (!dob) { toast.error('Date of birth is required'); return; }
     if (!isAtLeast18(dob)) { toast.error('You must be at least 18 years old'); return; }
@@ -142,9 +143,9 @@ export default function KycSection() {
         gender,
         date_of_birth: format(dob, 'yyyy-MM-dd'),
         govt_id_type: govtIdType || null,
-      } as any).eq('id', user.id);
+      } as any).eq('id', userId);
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(userId);
       toast.success('KYC details saved');
     } catch (err: any) {
       toast.error(err.message || 'Failed to save');
