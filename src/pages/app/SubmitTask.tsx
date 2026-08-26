@@ -116,26 +116,51 @@ export default function SubmitTask() {
     };
   }, [selectedFile]);
 
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!taskId || !user) return;
+    if (!taskId || !isInitialized) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+    let isSubscribed = true;
     (async () => {
       setLoading(true);
-      const [taskRes, count] = await Promise.all([
-        supabase.from('projects').select('*').eq('id', taskId).single(),
-        fetchUserSubmissionCount(user.id, taskId),
-      ]);
-      if (taskRes.error || !taskRes.data) {
-        toast.error('Project not found');
-        navigate('/app', { replace: true });
-        return;
+      setLoadError(null);
+      try {
+        const [taskRes, count] = await Promise.all([
+          supabase.from('projects').select('*').eq('id', taskId).single(),
+          fetchUserSubmissionCount(user.id, taskId),
+        ]);
+        if (!isSubscribed) return;
+        if (taskRes.error || !taskRes.data) {
+          toast.error('Project not found');
+          navigate('/app', { replace: true });
+          return;
+        }
+        setTask(taskRes.data as unknown as Task);
+        setMyCount(count);
+      } catch (err: any) {
+        console.error('Failed to load project details:', err);
+        if (isSubscribed) {
+          setLoadError(err?.message || 'Failed to load project submission details');
+          toast.error('Failed to load project details');
+        }
+      } finally {
+        if (isSubscribed) {
+          setLoading(false);
+        }
       }
-      setTask(taskRes.data as unknown as Task);
-      setMyCount(count);
-      setLoading(false);
     })();
-  }, [taskId, navigate, user]);
 
-  if (loading) {
+    return () => {
+      isSubscribed = false;
+    };
+  }, [taskId, navigate, user?.id, isInitialized]);
+
+  if (!isInitialized || loading) {
     return (
       <div className="space-y-4 p-4 max-w-2xl mx-auto">
         <Skeleton className="h-8 w-3/4" />
@@ -144,7 +169,31 @@ export default function SubmitTask() {
     );
   }
 
-  if (!task) return null;
+  if (!user?.id) {
+    return (
+      <div className="p-6 max-w-lg mx-auto text-center space-y-4 mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <AlertCircle className="h-12 w-12 text-amber-500 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-800">Authentication Required</h2>
+        <p className="text-sm text-slate-500">Please sign in to view and submit tasks.</p>
+        <Button onClick={() => navigate('/auth/login', { state: { from: location.pathname } })} className="bg-[#0E1F3E] text-white font-bold">
+          Sign In
+        </Button>
+      </div>
+    );
+  }
+
+  if (loadError || !task) {
+    return (
+      <div className="p-6 max-w-lg mx-auto text-center space-y-4 mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <AlertCircle className="h-12 w-12 text-rose-500 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-800">Unable to Load Task</h2>
+        <p className="text-sm text-slate-500">{loadError || 'Project not found'}</p>
+        <Button onClick={() => navigate('/app')} variant="outline" className="font-semibold">
+          Back to Dashboard
+        </Button>
+      </div>
+    );
+  }
 
   const config = MEDIA_CONFIG[task.media_type];
   const isText = task.media_type === 'text';

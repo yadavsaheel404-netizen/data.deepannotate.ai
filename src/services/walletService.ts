@@ -137,6 +137,7 @@ export async function fetchTokensHistory(
   userId: string,
   limit = 50,
 ): Promise<TokensTransaction[]> {
+  if (!userId || userId === 'undefined') return [];
   const { data, error } = await supabase
     .from('tokens_transactions')
     .select('*')

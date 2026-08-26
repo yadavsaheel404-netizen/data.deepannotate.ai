@@ -24,7 +24,7 @@ export default function Earnings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     (async () => {
       setLoading(true);
       const { data } = await supabase

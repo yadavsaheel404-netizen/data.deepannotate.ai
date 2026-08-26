@@ -16,6 +16,7 @@ export async function createSubmission(submission: SubmissionInsert): Promise<Su
 }
 
 export async function fetchUserSubmissionCount(userId: string, projectId: string): Promise<number> {
+  if (!userId || userId === 'undefined') return 0;
   const { count, error } = await supabase
     .from('tasks')
     .select('*', { count: 'exact', head: true })

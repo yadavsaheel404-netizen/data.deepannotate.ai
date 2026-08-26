@@ -143,7 +143,7 @@ export default function WalletPage() {
   const availableBalance = Math.max(0, walletBalance - lockedAmount);
 
   const fetchData = async () => {
-    if (!user) return;
+    if (!user?.id) return;
     setLoading(true);
     try {
       const [earningsRes, withdrawRes] = await Promise.all([

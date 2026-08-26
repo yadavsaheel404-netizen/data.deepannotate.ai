@@ -49,7 +49,7 @@ export default function ContributorDashboard() {
   const showBanner = profile && !profile.profile_completed && !bannerDismissed;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
     (async () => {
       setLoading(true);
       try {

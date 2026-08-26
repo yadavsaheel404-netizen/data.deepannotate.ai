@@ -20,6 +20,8 @@ const EMPTY: ProfileStats = {
 };
 
 async function fetchProfileStats(userId: string): Promise<ProfileStats> {
+  if (!userId || userId === 'undefined') return EMPTY;
+
   // Single source of truth: `tasks` is the user-submissions table.
   // Earnings are computed from the `earnings` table (status 'approved' OR 'paid'
   // — once a withdrawal is paid out, the row flips to 'paid', so both count
