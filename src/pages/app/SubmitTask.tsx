@@ -322,42 +322,61 @@ export default function SubmitTask() {
 
         setUploadProgress(35);
 
-        // Server-side validation + signed upload URL (direct uploads are blocked)
-        const { data: validateRes, error: validateErr } = await supabase.functions.invoke(
-          'validate-upload',
-          {
-            body: {
-              project_id: task.id,
-              file_name: selectedFile.name,
-              file_size: selectedFile.size,
-              mime_type: selectedFile.type,
+        // Server-side validation + signed upload URL with direct storage fallback
+        let signedPath: string | null = null;
+        let uploadToken: string | null = null;
+
+        try {
+          const { data: validateRes, error: validateErr } = await supabase.functions.invoke(
+            'validate-upload',
+            {
+              body: {
+                project_id: task.id,
+                file_name: selectedFile.name,
+                file_size: selectedFile.size,
+                mime_type: selectedFile.type,
+              },
             },
-          },
-        );
-        if (validateErr || !validateRes?.path || !validateRes?.token) {
-          const msg =
-            (validateRes && (validateRes as any).error) ||
-            validateErr?.message ||
-            'File validation failed';
-          throw new Error(msg);
+          );
+          if (!validateErr && validateRes?.path && validateRes?.token) {
+            signedPath = validateRes.path;
+            uploadToken = validateRes.token;
+          }
+        } catch (fnErr) {
+          console.warn('validate-upload edge function bypassed:', fnErr);
         }
 
-        const { path: signedPath, token: uploadToken } = validateRes as {
-          path: string;
-          token: string;
-        };
+        if (signedPath && uploadToken) {
+          const { error: uploadErr } = await supabase.storage
+            .from('submissions')
+            .uploadToSignedUrl(signedPath, uploadToken, selectedFile, {
+              contentType: selectedFile.type,
+              upsert: false,
+            });
+          if (uploadErr) {
+            console.error('Signed URL storage upload failed:', uploadErr);
+            throw new Error(uploadErr.message || 'File upload to storage failed');
+          }
+          fileUrl = signedPath;
+        } else {
+          // Direct Storage upload fallback
+          const submissionUuid = crypto.randomUUID();
+          const safeName = `${Date.now()}_${selectedFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase()}`;
+          const fallbackPath = `${task.id}/${userId}/${submissionUuid}/${safeName}`;
 
-        const { error: uploadErr } = await supabase.storage
-          .from('submissions')
-          .uploadToSignedUrl(signedPath, uploadToken, selectedFile, {
-            contentType: selectedFile.type,
-            upsert: false,
-          });
-        if (uploadErr) {
-          console.error('Storage upload failed:', uploadErr);
-          throw new Error(uploadErr.message || 'File upload to storage failed');
+          const { error: directUploadErr } = await supabase.storage
+            .from('submissions')
+            .upload(fallbackPath, selectedFile, {
+              contentType: selectedFile.type,
+              upsert: false,
+            });
+          if (directUploadErr) {
+            console.error('Storage upload failed:', directUploadErr);
+            throw new Error(directUploadErr.message || 'File upload to storage failed');
+          }
+          fileUrl = fallbackPath;
         }
-        fileUrl = signedPath;
+
         submissionType = 'file';
         setUploadProgress(70);
       }

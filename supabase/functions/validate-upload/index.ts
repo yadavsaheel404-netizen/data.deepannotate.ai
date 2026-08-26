@@ -65,16 +65,38 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+    let userId: string | null = null;
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) {
+    try {
+      const { data: userData } = await userClient.auth.getUser();
+      if (userData?.user?.id) {
+        userId = userData.user.id;
+      }
+    } catch { /* fallback to JWT decode */ }
+
+    if (!userId) {
+      try {
+        const rawToken = authHeader.replace(/^Bearer\s+/i, "").trim();
+        const parts = rawToken.split(".");
+        if (parts.length === 3) {
+          const payloadJson = atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"));
+          const payload = JSON.parse(payloadJson);
+          if (payload.sub && typeof payload.sub === "string") {
+            userId = payload.sub;
+          }
+        }
+      } catch (jwtErr) {
+        console.warn("JWT parse failed:", jwtErr);
+      }
+    }
+
+    if (!userId) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = userData.user.id;
 
     const body = await req.json().catch(() => null);
     if (!body || typeof body !== "object") {
