@@ -27,6 +27,7 @@ import { useProfileStats } from '@/hooks/useProfileStats';
 import PhoneInput from '@/components/profile/PhoneInput';
 import MultiSelectCombobox from '@/components/profile/MultiSelectCombobox';
 import KycSection from '@/components/profile/KycSection';
+import TwoFactorSection from '@/components/profile/TwoFactorSection';
 
 const LANGUAGES = [
   { value: 'en', label: 'English' }, { value: 'hi', label: 'Hindi' },
@@ -394,11 +395,12 @@ export default function Profile() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="w-full grid grid-cols-4 h-auto">
+        <TabsList className="w-full grid grid-cols-5 h-auto">
           <TabsTrigger value="overview" className="text-xs py-2">Overview</TabsTrigger>
           <TabsTrigger value="personal" className="text-xs py-2">Personal</TabsTrigger>
           <TabsTrigger value="skills" className="text-xs py-2">Skills</TabsTrigger>
           <TabsTrigger value="payment" className="text-xs py-2">Payments</TabsTrigger>
+          <TabsTrigger value="security" className="text-xs py-2">Security</TabsTrigger>
         </TabsList>
 
         {/* OVERVIEW */}
@@ -789,6 +791,11 @@ export default function Profile() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* SECURITY / 2FA */}
+        <TabsContent value="security">
+          <TwoFactorSection />
         </TabsContent>
       </Tabs>
 

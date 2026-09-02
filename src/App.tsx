@@ -43,12 +43,15 @@ import AdminPayouts from "./pages/admin/Payouts";
 import WithdrawRequests from "./pages/admin/WithdrawRequests";
 import CompleteProfile from "./pages/app/CompleteProfile";
 import AdminSupport from "./pages/admin/Support";
+import AdminSettings from "./pages/admin/Settings";
 import VerifyEmail from "./pages/auth/VerifyEmail";
+import TwoFactorGate from "./components/auth/TwoFactorGate";
 
 const queryClient = new QueryClient();
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const initialize = useAuthStore((s) => s.initialize);
+  const twoFactorPending = useAuthStore((s) => s.twoFactorPending);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +66,10 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  if (twoFactorPending) {
+    return <TwoFactorGate />;
+  }
 
   const hasFirebase = Boolean(import.meta.env.VITE_FIREBASE_API_KEY);
 
@@ -120,6 +127,7 @@ const App = () => (
               <Route path="payouts" element={<AdminPayouts />} />
               <Route path="withdrawals" element={<WithdrawRequests />} />
               <Route path="support" element={<AdminSupport />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             {/* Contributor routes */}

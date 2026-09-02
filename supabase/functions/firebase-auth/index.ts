@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
 
     // Verify Firebase JWT using Google JWKS endpoint
     const JWKS = jose.createRemoteJWKSet(
-      new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken-system@system.gserviceaccount.com")
+      new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
     );
 
     let payload: jose.JWTPayload;
@@ -54,8 +54,16 @@ Deno.serve(async (req) => {
       });
       payload = verifiedPayload;
     } catch (verifyErr) {
-      logJson("warn", { error: "JWT verification failed", message: (verifyErr as Error).message });
-      return new Response(JSON.stringify({ error: "Invalid ID Token" }), {
+      const errMsg = (verifyErr as Error).message || String(verifyErr);
+      let decodedInfo = "";
+      try {
+        const decoded = jose.decodeJwt(idToken);
+        decodedInfo = ` (token iss: ${decoded.iss}, aud: ${decoded.aud}, expected: ${firebaseProjectId})`;
+      } catch {
+        decodedInfo = " (failed to decode token)";
+      }
+      logJson("warn", { error: "JWT verification failed", message: errMsg + decodedInfo });
+      return new Response(JSON.stringify({ error: "Invalid ID Token", details: errMsg + decodedInfo }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -176,11 +184,45 @@ Deno.serve(async (req) => {
       role = roleData?.role || "contributor";
     }
 
-    // 4. Generate custom Supabase JWT containing profiles.id as sub claim
+    // Check 2FA status
+    const { data: twoFa } = await admin
+      .from("user_2fa")
+      .select("enabled")
+      .eq("user_id", profile.id)
+      .maybeSingle();
+
     const secret = new TextEncoder().encode(jwtSecretStr);
+
+    if (twoFa?.enabled) {
+      // Issue short-lived PENDING token (5 min) — NOT a session token
+      // role: 'anon' ensures PostgREST grants zero authenticated access
+      // app_role omitted to avoid role disclosure
+      const pendingToken = await new jose.SignJWT({
+        purpose: "2fa_pending",
+        role: "anon",
+        sub: profile.id,
+        email: profile.email,
+      })
+        .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+        .setExpirationTime("5m")
+        .sign(secret);
+
+      logJson("info", { event: "2fa_required", user_id: profile.id });
+
+      return new Response(
+        JSON.stringify({
+          requires2fa: true,
+          pendingToken,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 4. Generate custom Supabase JWT containing profiles.id as sub claim
     const exp = Math.floor(Date.now() / 1000) + 3600; // 1 hour expiration
 
     const customToken = await new jose.SignJWT({
+      purpose: "session",
       role: "authenticated",
       iss: "supabase",
       aud: "authenticated",

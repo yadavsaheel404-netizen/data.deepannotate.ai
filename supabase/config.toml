@@ -3,7 +3,18 @@ project_id = "gkkmmhjhsmrnhnlpgnrs"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.firebase-auth]
+    verify_jwt = false
+  [functions.twofa-enroll-start]
+    verify_jwt = false
+  [functions.twofa-enroll-confirm]
+    verify_jwt = false
+  [functions.twofa-verify-login]
+    verify_jwt = false
+  [functions.twofa-disable]
+    verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
   [functions.export-contributors]
     verify_jwt = false
+

@@ -13,6 +13,7 @@ import {
   Database,
   MessageSquare,
   LifeBuoy,
+  Settings,
 } from 'lucide-react';
 
 const navItems = [
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/admin/payouts', icon: Wallet, label: 'Payouts' },
   { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/admin/support', icon: LifeBuoy, label: 'Support' },
+  { to: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function AdminLayout() {
